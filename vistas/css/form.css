@@ -1,0 +1,818 @@
+.modal-forms .modal-content {
+  border-radius: 15px !important;
+}
+.modal-forms .modal-header {
+  border-top-right-radius: 15px !important;
+  border-top-left-radius: 15px !important;
+  background-image: linear-gradient(
+    105.3deg,
+    #064775,
+    #0473c1
+  ) !important;
+}
+.modal-forms form input,
+.modal-forms select {
+  border-style: none !important;
+  outline: 0 !important;
+  border-radius: 15px !important;
+  border: 1px solid #0473c1 !important;
+  letter-spacing: 1px !important;
+  font-weight: bold !important;
+  height: 40px !important;
+  background-color: #fff !important;
+}
+.modal-forms form input,
+.modal-forms form select {
+  border-radius: 5px 5px 5px 5px !important;
+  /* border-left: 0px !important; */
+  font-weight: normal !important;
+  font-size: 1.2em;
+}
+#modalAgregarCliente form input,
+.modal-forms select,
+#modalEditarCliente form input,
+.modal-forms select {
+  border-radius: 0px 5px 5px 0px !important;
+  /* border-left: 0px !important; */
+  font-weight: normal !important;
+  font-size: 1.2em;
+}
+.resultadoCliente,
+.resultadoSerie,
+.resultadoProveedor {
+  position: absolute !important;
+  left: 0 !important;
+  top: 100% !important;
+  width: 100% !important;
+  z-index: 1000 !important;
+  padding: 5px;
+  background-color: #fff !important;
+  font-weight: bold !important;
+}
+.resultado-ubigeos-partida {
+  position: absolute !important;
+  left: 0 !important;
+  top: 100% !important;
+  width: 100% !important;
+  z-index: 1000 !important;
+  padding: 15px;
+  background-color: rgb(255, 255, 255) !important;
+  font-weight: bold !important;
+}
+.resultado-ubigeos-llegada {
+  position: absolute !important;
+  left: 0 !important;
+  top: 100% !important;
+  width: 100% !important;
+  z-index: 1000 !important;
+  padding: 15px;
+  background-color: rgb(255, 255, 255) !important;
+  font-weight: bold !important;
+}
+.resultadoSerie {
+  position: absolute !important;
+  left: 0 !important;
+  top: 100% !important;
+  width: 100% !important;
+  z-index: 1000 !important;
+  padding: 5px;
+  background-color: #fff !important;
+  font-weight: bold !important;
+  font-size: 1.3em;
+}
+.resultado-serie {
+  position: absolute !important;
+  left: 0 !important;
+  top: 100% !important;
+  width: 100% !important;
+  z-index: 1000 !important;
+  padding: 5px;
+  background-color: #fff !important;
+  font-weight: bold !important;
+}
+.box {
+  border-top: 0px !important;
+}
+.btn-select {
+  outline: 0 !important;
+  border-style: none !important;
+  border-radius: 15px !important;
+  background-color: #fff !important;
+  border: 1px solid rgb(124, 124, 124) !important;
+}
+
+.btn-select + .dropdown-menu li {
+  outline: 0 !important;
+  border-style: none !important;
+  border: 1px solid rgb(236, 236, 236) !important;
+}
+.formVenta input[type="radio"] {
+  width: 25px !important;
+  height: 25px !important;
+  cursor: pointer;
+}
+.radio-envio {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
+}
+.radio-envio div {
+  width: 280px;
+  margin: 0px !important;
+  padding: 0px !important;
+  padding-left: 12px !important;
+}
+.radio-envio input[type="radio"] {
+  width: 25px !important;
+  height: 25px !important;
+  cursor: pointer;
+}
+
+.radio-envio label {
+  position: absolute;
+  font-weight: normal;
+  font-size: 1.1em;
+  letter-spacing: 1px;
+  margin-left: 4px;
+  top: 5px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+/* ==============================
+CSS CONFIGURAR EMPRESA
+*/
+.contenedor-archivo {
+  display: flex;
+  width: 100%;
+  flex-flow: column;
+  align-items: center;
+}
+.contenedor-archivo input[type="file"] {
+  display: none;
+}
+.contenedor-archivo label {
+  width: 60px;
+  height: 60px;
+  border-radius: 100%;
+  /*border: 1px solid rgb(235, 235, 235); */
+  background-color: #0473c1;
+  background-image: url("../img/svg/certificado.svg");
+  background-size: 2.5em 2.5em;
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+#formEmpresa input,
+#formEmpresa select {
+  border-radius: 0px 5px 5px 0px;
+  border: 1px solid #0473c1!important;
+  font-size: 1.2em;
+}
+#formEmpresa span {
+  border-radius: 5px 0px 0px 5px;
+  border: 1px solid #0473c1 !important;
+  border-right: 0px !important;
+}
+/* =============================== */
+/* FIN BOTÓNES IMPRIMIR */
+.contenedor-print-comprobantes {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+}
+.contenedor-print-comprobantes #printA4,
+.contenedor-print-comprobantes #printT,
+.contenedor-print-comprobantes #xml,
+.contenedor-print-comprobantes #cdr,
+.contenedor-print-comprobantes .s-success,
+.contenedor-print-comprobantes .s-rechazo,
+.contenedor-print-comprobantes .anulado,
+.contenedor-print-comprobantes .option-menu,
+.contenedor-print-comprobantes .senda4,
+.contenedor-print-comprobantes .anulada-nota,
+.contenedor-print-comprobantes .anular-nota,
+.contenedor-print-comprobantes .s-getcdr {
+  position: relative;
+  padding: 4px;
+  width: 45px;
+  height: 45px;
+  border-radius: 100% !important;
+  margin: 2px;
+  background-color: #fff;
+  cursor: pointer;
+  outline: 0 !important;
+  border-style: none !important;
+  /* border: .5px solid rgb(235, 235, 235) !important; */
+  /* box-shadow: 1px 1px 5px rgba(214, 214, 214, 0.7) !important; */
+}
+#a4,
+#tk {
+  display: none;
+}
+.contenedor-print-comprobantes #printA4,
+.btn-print-compra {
+  background-image: url("../img/svg/pdf_cpe.svg") !important;
+  background-size: 2em 2em !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.contenedor-print-comprobantes #printT {
+  background-image: url("../img/svg/ticket_cpe.svg") !important;
+  background-size: 2em 2em !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.contenedor-print-comprobantes #xml {
+  background-image: url("../img/svg/xml_cpe.svg") !important;
+  background-size: 2em 2em !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.contenedor-print-comprobantes #cdr {
+  background-image: url("../img/svg/xml_cdr.svg") !important;
+  background-size: 2em 2em !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.contenedor-print-comprobantes .s-success {
+  background-image: url("../img/svg/success.svg") !important;
+  background-size: 2em 2em !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.contenedor-print-comprobantes .s-rechazo {
+  background-image: url("../img/svg/rechazo.svg") !important;
+  background-size: 2em 2em !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.contenedor-print-comprobantes .s-getcdr {
+  background-image: url("../img/svg/get_cdr.svg") !important;
+  background-size: 2em 2em !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.contenedor-print-comprobantes .anulado {
+  background-image: url("../img/svg/error.svg") !important;
+  background-size: 2em 2em !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.contenedor-print-comprobantes .senda4 {
+  background-image: url("../img/svg/send-mail.svg") !important;
+  background-size: 2em 2em !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.contenedor-print-comprobantes .option-menu {
+  width: 2.2em !important;
+  height: 2.2em !important;
+  padding: 3px !important;
+  border-style: none !important;
+  outline: 0 !important;
+  /* box-shadow: 0px 0px 0px !important; */
+  background-image: url("../img/svg/menu.svg") !important;
+  background-size: 1.8em 1.8em !important;
+  background-position: 0.7em 0.5em !important;
+  background-repeat: no-repeat !important;
+}
+/* FIN BOTÓNES IMPRIMIR */
+/* =============================== */
+.nav .notifications-menu.open > a,
+.nav .notifications-menu.open > a:focus,
+.nav .notifications-menu.open > a:hover {
+  background-color: #0c75ff !important;
+  z-index: 0;
+}
+.nav .user-menu.open > a,
+.nav .user-menu.open > a:focus,
+.nav .user-menu.open > a:hover {
+  background-color: #3675ff !important;
+  z-index: 0;
+}
+.nav .open > a,
+.nav .open > a:focus,
+.nav .open > a:hover {
+  background-color: #ffffff !important;
+  z-index: 0;
+}
+.nav > li > a:hover,
+.nav > li > a:active,
+.nav > li > a:focus {
+  color: #444;
+  background: #ffffff;
+  z-index: 0;
+}
+.contenedor-print-comprobantes .nav li a span {
+  font-size: 1.2em !important;
+}
+.contenedor-print-comprobantes .nav li a {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.contenedor-print-comprobantes .navbar,
+.contenedor-print-comprobantes .nav,
+.contenedor-print-comprobantes .dropdown,
+.contenedor-print-comprobantes .navbar-static-top {
+  width: 40px !important;
+  height: 40px !important;
+  margin: 0px !important;
+  padding: 0px !important;
+  z-index: inherit !important;
+}
+.contenedor-print-comprobantes .form button,
+.contenedor-print-comprobantes button {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-style: none !important;
+  outline: 0 !important;
+  width: 100%;
+  background-color: rgb(255, 255, 255);
+  font-size: 1.2em;
+  color: rgb(88, 88, 88);
+  text-align: left;
+}
+.contenedor-print-comprobantes .form button:hover,
+.contenedor-print-comprobantes button:hover {
+  background-color: rgb(238, 238, 238);
+}
+.contenedor-print-comprobantes .form button i,
+.contenedor-print-comprobantes button i {
+  margin-left: 8px;
+  top: 8px;
+  color: rgb(255, 94, 94);
+}
+.contenedor-print-comprobantes .form button span,
+.contenedor-print-comprobantes button span {
+  margin-left: 8px;
+  top: 8px;
+}
+
+/* CSS RESUMEN INPUTS */
+.resumen-diario input[type="text"] {
+  outline: 0 !important;
+  border-style: none !important;
+  border: 0.3px solid rgb(194, 194, 194) !important;
+  border-radius: 0px 15px 15px 0px !important;
+  padding: 4px !important;
+  font-size: 1.2em !important;
+}
+.resumen-diario span {
+  outline: 0 !important;
+  border-style: none !important;
+  border: 0.3px solid rgb(194, 194, 194) !important;
+  border-radius: 15px 0px 0px 15px !important;
+  border-right: 0px !important;
+}
+/* BOTÓN VER BOLETAS| */
+.btn-ver_boletas button {
+  outline: 0 !important;
+  border-style: none !important;
+  border-radius: 15px;
+  background-image: linear-gradient(
+    105.3deg,
+    #0473c1,
+    #0473c5
+  ) !important;
+  font-weight: 600 !important;
+  letter-spacing: 1px !important;
+  font-size: 0.9em;
+}
+.btn-ver_boletas button:hover {
+  border-radius: 15px;
+  background-image: linear-gradient(
+    105.3deg,
+    rgb(111, 111, 155) 21.8%,
+    #0473c1
+  ) !important;
+}
+.btn-ver_boletas button i {
+  padding-right: 4px;
+}
+
+/* RESUMEN DIARIO INPUTS  */
+.contenedor-busqueda {
+  position: relative;
+  width: 100%;
+  padding: 5px;
+}
+.contenedor-busqueda .input-group-search {
+  width: 100% !important;
+  display: flex;
+  flex-flow: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+.contenedor-busqueda .input-group-search .input-search {
+  margin: 8px;
+  width: 95%;
+  padding-right: 10px;
+}
+.contenedor-busqueda .input-group-search .input-search input {
+  outline: 0 !important;
+  border: 1px solid rgb(192, 192, 192);
+  border-radius: 5px 0px 0px 5px;
+  padding: 5px;
+  padding-left: 12px;
+  border-right: 0px;
+  width: 100%;
+  text-transform: uppercase;
+}
+.contenedor-busqueda .input-group-search .input-search span {
+  position: absolute;
+  padding: 5px;
+  border: 1px solid rgb(148, 148, 148);
+  border-radius: 0px 5px 5px 0px;
+  background-image: linear-gradient(
+    105.3deg,
+    #0473c1,
+    #0473c5
+  ) !important;
+  color: #fff !important;
+}
+/* TABLA DE RESUMENES DIARIOS  */
+.tabla-resumenes {
+  border: 0px !important;
+  overflow-x: inherit;
+}
+.tabla-resumenes table {
+  border: 0px solid rgb(148, 148, 148);
+}
+.tabla-resumenes table th {
+  text-transform: uppercase;
+  text-align: center;
+  border: 0px !important;
+  color: rgb(245, 245, 245) !important;
+  letter-spacing: 1px !important;
+  font-size: 1em;
+  font-weight: 600;
+}
+.tabla-resumenes table thead tr {
+  background-image: linear-gradient(
+    105.3deg,
+    #0473c1,
+    #0473c5
+  );
+}
+.tabla-resumenes table thead tr th:first-child {
+  border-radius: 0px 0px 0px 0px;
+}
+.tabla-resumenes table thead tr th:last-child {
+  border-radius: 0px 0px 0px 0px;
+}
+
+.tabla-resumenes table tbody tr td {
+  border: 0px !important;
+  border-left: 0px !important;
+  /* border-bottom: 1px solid #eee !important; */
+}
+.t-md {
+  font-size: 1.1em;
+}
+/* SUBIR IMÁGEN CSS */
+.img-contenedor,
+.img-contenedor-logo {
+  position: relative !important;
+  width: 100%;
+  display: flex;
+  flex-flow: column;
+  justify-content: center !important;
+  align-items: center;
+}
+.img-contenedor input[type="file"],
+.img-contenedor-logo input[type="file"] {
+  display: none;
+}
+.img-contenedor label {
+  width: 60px;
+  height: 60px;
+  border-radius: 100%;
+  /*border: 1px solid rgb(235, 235, 235); */
+  /* background-color: rgb(44, 113, 216); */
+  background-image: url("../img/svg/camara.svg");
+  background-size: 50px;
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+.img-contenedor-logo label {
+  width: 150px;
+  border-radius: 100%;
+  /*border: 1px solid rgb(235, 235, 235); */
+  /* background-color: rgb(44, 113, 216); */
+  background-image: url("../img/svg/camara.svg");
+  background-size: 50px;
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.contenedor-radios {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: start;
+  align-items: center;
+  align-content: center;
+  /* background-image: linear-gradient(105.3deg, rgb(67, 97, 180) 21.8%, rgb(94, 130, 221) 100.2% ); */
+  color: rgb(255, 255, 255);
+  padding: 0px;
+  border-radius: 25px;
+  padding-left: 12px;
+}
+.contenedor-radios input {
+  display: none;
+}
+.contenedor-radios label {
+  margin: 0;
+  position: relative;
+  padding: 11px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 400;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  background-color: rgb(62, 91, 252);
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+.contenedor-radios label:nth-child(1) {
+  background: #0473c1;
+}
+.contenedor-radios label:nth-child(3) {
+  background: rgb(255, 110, 110);
+}
+.contenedor-radios label:nth-child(5) {
+  background: #0473c5;
+}
+.contenedor-radios label:nth-child(7) {
+  background: rgb(255, 205, 68);
+}
+.contenedor-radios label:nth-child(9) {
+  background: rgb(238, 77, 211);
+}
+.contenedor-radios label:nth-child(11) {
+  background: rgb(72, 130, 255);
+}
+/* REPORTES FECHAS */
+.fechas-reportes {
+  margin-bottom: 10px;
+}
+.fechas-reportes input {
+  border-style: none !important;
+  outline: none !important;
+  border: 1px solid #ccc !important;
+  font-size: 1.2em !important;
+  padding: 6px !important;
+  padding-left: 12px !important;
+  border-radius: 0px 5px 5px 0px;
+}
+
+.result-report {
+  position: relative;
+  width: 100%;
+  padding: 5px;
+  font-size: 0.8em;
+  background-color: rgb(255, 104, 104);
+  z-index: inherit;
+  display: none;
+  color: #fff;
+}
+/* FIN===================== */
+@media (max-width: 767px) {
+  .contenedor-radios label {
+    margin-bottom: 5px;
+  }
+  .img-contenedor-logo {
+    position: relative !important;
+    width: 100%;
+    display: flex;
+    flex-flow: column;
+    justify-content: start !important;
+    align-items: start;
+  }
+}
+@media (max-width: 990px) {
+  .fechas-reportes .input-group {
+    margin-bottom: 5px !important;
+  }
+}
+.panel-medio .box-header-calendar {
+  font-size: 1em !important;
+}
+
+#formConsulta input,
+#formConsulta select {
+  border-style: none !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  height: 35px !important;
+  font-size: 1.2em !important;
+  border: 1px solid #0473c1 !important;
+  border-radius: 0px 5px 5px 0px !important;
+}
+.btn-container-consultar {
+  text-align: center;
+}
+.btn-container-consultar button {
+  width: 220px !important;
+  font-size: 1.3em !important;
+  padding: 5px !important;
+  letter-spacing: 1px !important;
+  border-radius: 5px !important;
+  background-image: linear-gradient(
+    105.3deg,
+    #0473c5,
+    #0473c1
+  ) !important;
+}
+#resultConsulta {
+  font-size: 1.5em;
+  letter-spacing: 1px;
+  padding: 25px;
+  text-transform: uppercase;
+}
+.contenedor-btn-reportes .btn {
+  border-style: none !important;
+  outline: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+.contenedor-reportes-email {
+  position: relative;
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+}
+.contenedor-reportes-email input {
+  width: 100%;
+  font-size: 1.1em;
+  outline: none;
+  border-style: none;
+  border: 1px solid #0473c1;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+.contenedor-reportes-email button {
+  width: 100%;
+  font-size: 1.1em;
+  outline: none;
+  border-style: none;
+  border: 1px solid #0473c1;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  letter-spacing: 1px;
+  background-image: linear-gradient(
+    105.3deg,
+    #0473c1,
+    #0473c5
+  ) !important;
+}
+.contenedor-reportes-email .respuesta-envio-reporte {
+  padding: 10px;
+  font-size: 1.1em;
+  color: #fff;
+  width: 100%;
+}
+
+#formItems input,
+#formItems select {
+  outline: none;
+  border-style: none !important;
+  font-size: 1.3em !important;
+  border: 1px solid #ccc !important;
+  height: auto !important;
+  border-radius: 5px !important;
+}
+/*Full screen Modal 
+*/
+#formItems span {
+  font-size: 1.1em !important;
+  margin-left: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+@media (min-width: 768px) {
+  .fullscreen-modal .modal-dialog {
+    width: 750px;
+  }
+}
+@media (min-width: 992px) {
+  .fullscreen-modal .modal-dialog {
+    width: 970px;
+  }
+}
+@media (min-width: 1200px) {
+  .fullscreen-modal .modal-dialog {
+    width: 1170px;
+  }
+}
+legend {
+  font-size: 1em !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+}
+.c-productos {
+  position: relative !important;
+}
+.c-productos .p-productos {
+  position: absolute;
+  padding: 7px;
+  width: 100%;
+  background-color: rgb(253, 253, 253);
+  z-index: 1000;
+}
+.lbl-text {
+  text-transform: uppercase;
+  font-weight: 600 !important;
+  margin-left: 5px;
+  color: rgb(4, 81, 182);
+}
+
+#serieCorrelativoReferencial {
+  font-size: 1.5em !important;
+  text-transform: uppercase;
+  border-radius: 5px !important;
+}
+.resultado-serie legend a,
+.resultado-ubigeos-partida legend a,
+.resultado-ubigeos-llegada legend a {
+  font-size: 1.2em !important;
+}
+.formGuia legend {
+  color: rgb(36, 108, 185);
+  font-weight: 600 !important;
+  font-size: 1.15em !important;
+}
+
+.cuotas-float {
+  position: absolute !important;
+  z-index: 10000;
+  background-color: #0473c9;
+  padding: 8px !important;
+  width: 95%;
+  border-radius: 10px !important;
+}
+.cuotas-float label {
+  color: rgb(248, 248, 248);
+}
+
+.contenedor-pie-chart {
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.pro-mas-v ul a span {
+  font-size: 16px !important;
+}
+.pro-mas-v ul li a {
+  margin: 0 !important;
+  padding: 6px !important;
+}
+
+#formGuia input,
+#formGuia select {
+  font-size: 1.1em !important;
+}
+#formGuia #direccionPartida,
+#formGuia #direccionLlegada,
+#formGuia #numBrevete,
+#formGuia #placa {
+  text-transform: uppercase;
+}
+.input-group-c-apellidos {
+  margin-top: 5px;
+}
+.number-guiar {
+  position: relative;
+  padding: 10px;
+  margin-left: 15px;
+  background-color: rgb(28, 118, 208);
+  border-radius: 60%;
+  width: 30px !important;
+  height: 30px;
+  text-align: center;
+  top: 10px;
+}
+.number-guiar h3 {
+  position: absolute;
+  font-size: 1em;
+  bottom: -10%;
+  left: 35%;
+  color: #fff;
+  font-weight: bold;
+}
