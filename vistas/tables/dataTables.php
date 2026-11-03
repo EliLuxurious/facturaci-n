@@ -467,51 +467,53 @@ class DataTables{
               $ruta_cdr = "cdr";
             
                        
-           $searchVentas = $_GET['searchVentas'];
-           $selectnum = $_GET['selectnum'];   
-           $fechaInicial = $_GET['fechaInicial'];
-           $fechaFinal = $_GET['fechaFinal'];
+           $searchVentas = $_GET['searchVentas'] ?? null;
+           $selectnum = $_GET['selectnum'] ?? 5;
+           $fechaInicial = $_GET['fechaInicial'] ?? null;
+           $fechaFinal = $_GET['fechaFinal'] ?? null;
            
-           $aColumns = array('serie_correlativo', 'correlativo');//Columnas de busqueda
            $sTable = 'venta';
-           $sWhere = "";
-          if(isset($searchVentas))
+           // MC-001: el WHERE siempre parte de las condiciones base. Antes, si no llegaba
+           // "searchVentas" la consulta quedaba "FROM venta AND resumen='n'" (error de SQL)
+           // y el listado se mostraba en blanco. Ademas se usan parametros (evita inyeccion SQL).
+           $condiciones = array("tipocomp != '02'", "resumen = 'n'");
+           $parametros = array();
+          if(isset($searchVentas) && $searchVentas !== '')
           {
-              $sWhere = "WHERE (";
-              for ( $i=0 ; $i<count($aColumns) ; $i++ )
-              {
-                  $sWhere .= " tipocomp !='02' AND ".$aColumns[$i]." LIKE '%".$searchVentas."%' OR ";
-              }
-              $sWhere = substr_replace( $sWhere, "", -3 );
-              $sWhere .= ')';
+              $condiciones[] = "(serie_correlativo LIKE :buscar1 OR correlativo LIKE :buscar2)";
+              $parametros[':buscar1'] = '%'.$searchVentas.'%';
+              $parametros[':buscar2'] = '%'.$searchVentas.'%';
           }
-          if($fechaInicial != null && $fechaFinal != null){
+          if(!empty($fechaInicial) && !empty($fechaFinal)){
           if($fechaInicial == $fechaFinal){
-            $sWhere = "WHERE tipocomp !='02' AND fecha_emision LIKE '%$fechaFinal%'";
-
+            $condiciones[] = "fecha_emision LIKE :fecha";
+            $parametros[':fecha'] = '%'.$fechaFinal.'%';
+          }else{
+            $condiciones[] = "fecha_emision BETWEEN :fechaInicial AND :fechaFinal";
+            $parametros[':fechaInicial'] = $fechaInicial;
+            $parametros[':fechaFinal'] = $fechaFinal;
           }
-          if($fechaInicial != $fechaFinal){
-            $sWhere = "WHERE tipocomp !='02' AND  fecha_emision BETWEEN '$fechaInicial' AND '$fechaFinal'";
           }
-          }
+          $sWhere = 'WHERE '.implode(' AND ', $condiciones);
             //pagination variables
            $page = (isset($_REQUEST['page']) && !empty($_REQUEST['page']))?$_REQUEST['page']:1;
           include_once 'pagination.php';
            //include pagination file
-          $per_page = $selectnum; //how much records you want to show
+          $per_page = (int)($selectnum ?: 5); //how much records you want to show
           $adjacents  = 4; //gap between pages after number of adjacents
-          $offset = ($page - 1) * $per_page;
+          $offset = ((int)$page - 1) * $per_page;
          
           //Count the total number of row in your table*/
           $pdo =  Conexion::conectar();
-          $totalRegistros   = $pdo->query("SELECT count(*) AS numrows FROM $sTable  $sWhere AND resumen='n'");
+          $totalRegistros   = $pdo->prepare("SELECT count(*) AS numrows FROM $sTable $sWhere");
+          $totalRegistros->execute($parametros);
           $totalRegistros = $totalRegistros->fetch()['numrows'];
           $tpages = ceil($totalRegistros/$per_page);
           $reload = './index.php';
           //main query to fetch the data
           $pdo =  Conexion::conectar();
-          $registros = $pdo->prepare("SELECT * FROM  $sTable $sWhere AND resumen='n' ORDER BY id DESC LIMIT $offset,$per_page");
-          $registros->execute();
+          $registros = $pdo->prepare("SELECT * FROM  $sTable $sWhere ORDER BY id DESC LIMIT $offset,$per_page");
+          $registros->execute($parametros);
        
           $registros=$registros->fetchall();     
               

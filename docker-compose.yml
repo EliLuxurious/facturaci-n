@@ -11,8 +11,8 @@ services:
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-dbfacturacion}
-      DB_USER: ${DB_USER:-root}
-      DB_PASSWORD: ${DB_PASSWORD:-root}
+      DB_USER: ${DB_USER:-facturacion_app}
+      DB_PASSWORD: ${DB_PASSWORD:-facturacion_app_dev}
     volumes:
       - .:/var/www/html
     depends_on:
@@ -26,11 +26,17 @@ services:
     container_name: facturacion_db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
       MYSQL_DATABASE: ${DB_NAME:-dbfacturacion}
+      # MPR-001: usuario de la aplicacion con permisos minimos
+      DB_APP_USER: ${DB_USER:-facturacion_app}
+      DB_APP_PASSWORD: ${DB_PASSWORD:-facturacion_app_dev}
     volumes:
       - db_data:/var/lib/mysql
       - ./BD/bdsistema.sql:/docker-entrypoint-initdb.d/01_bdsistema.sql:ro
+      - ./docker/db/02_usuario_app.sh:/docker-entrypoint-initdb.d/02_usuario_app.sh:ro
+      - ./BD/migraciones/001_stock_minimo.sql:/docker-entrypoint-initdb.d/03_stock_minimo.sql:ro
+      - ./BD/migraciones/002_abonos_cuotas.sql:/docker-entrypoint-initdb.d/04_abonos_cuotas.sql:ro
     ports:
       - "${DB_PORT:-3306}:3306"
     healthcheck:

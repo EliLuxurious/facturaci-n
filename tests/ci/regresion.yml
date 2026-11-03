@@ -1,0 +1,174 @@
+# Pipeline de pruebas de regresion (basado en la seccion 6.3 del informe).
+#  - Etapa 1 (pull request): TIA con --only-changed + suite critica @critico
+#  - Etapa 2 (push a main), etapa 3 (nocturna) y ejecucion manual: regresion completa
+#  - Etapa 4 (solo push a main y si la regresion completa paso): despliegue al servidor EC2
+name: regresion
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *' # 06:00 UTC = 01:00 hora de Peru
+  workflow_dispatch:
+
+jobs:
+  # ---------------------------------------------------------------
+  # Etapa 1: en cada pull request, solo lo impactado + lo critico
+  # ---------------------------------------------------------------
+  regresion-pr:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # necesario para --only-changed
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar Playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Levantar el sistema (PHP + MariaDB) con Docker
+        run: docker compose up -d --build app db
+
+      - name: Esperar a que el sistema responda
+        run: npx wait-on http://localhost:8080 --timeout 120000
+
+      - name: TIA - pruebas impactadas por el cambio
+        run: >-
+          npx playwright test
+          --only-changed=origin/${{ github.base_ref }}
+          --pass-with-no-tests
+
+      - name: Riesgo - suite critica
+        if: always()
+        run: npx playwright test --grep @critico
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reporte-pr
+          path: playwright-report/
+          retention-days: 14
+
+  # ---------------------------------------------------------------
+  # Etapas 2 y 3: regresion completa (push a main, nocturna, manual)
+  # ---------------------------------------------------------------
+  regresion-completa:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar Playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Levantar el sistema (PHP + MariaDB) con Docker
+        run: docker compose up -d --build app db
+
+      - name: Esperar a que el sistema responda
+        run: npx wait-on http://localhost:8080 --timeout 120000
+
+      - name: Regresion completa
+        run: npx playwright test
+
+      - name: Logs del sistema si algo falla
+        if: failure()
+        run: docker compose logs app --tail=200
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reporte-completo
+          path: playwright-report/
+          retention-days: 14
+
+  # ---------------------------------------------------------------
+  # Etapa 4: despliegue continuo al EC2 (solo si la regresion paso)
+  # Secretos necesarios (Settings > Secrets and variables > Actions):
+  #   EC2_HOST     IP publica o DNS del servidor
+  #   EC2_USER     usuario SSH (ubuntu en Ubuntu, ec2-user en Amazon Linux)
+  #   EC2_SSH_KEY  contenido completo del archivo .pem
+  #   EC2_APP_DIR  carpeta del proyecto en el servidor (ej. /home/ubuntu/facturaci-n)
+  # ---------------------------------------------------------------
+  desplegar-ec2:
+    needs: regresion-completa
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: despliegue-ec2
+      cancel-in-progress: false
+    environment: produccion
+    steps:
+      - name: Preparar la llave SSH
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/ec2.pem
+          chmod 600 ~/.ssh/ec2.pem
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+      - name: Actualizar el codigo y reconstruir los contenedores
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_APP_DIR: ${{ secrets.EC2_APP_DIR }}
+        run: |
+          ssh -i ~/.ssh/ec2.pem "$EC2_USER@$EC2_HOST" bash -s -- "$EC2_APP_DIR" "${{ github.sha }}" <<'REMOTO'
+          set -euo pipefail
+          cd "$1"
+          git fetch origin main
+          git checkout -q main
+          git merge --ff-only "$2"
+          docker compose up -d --build app db < /dev/null
+          # Migraciones de la base (se pueden repetir sin danar datos: IF NOT EXISTS)
+          for f in BD/migraciones/*.sql; do
+            echo "Aplicando $f"
+            docker compose exec -T db sh -c 'mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"' < "$f"
+          done
+          docker compose exec -T db bash /docker-entrypoint-initdb.d/02_usuario_app.sh < /dev/null
+          docker image prune -f < /dev/null
+          REMOTO
+
+      - name: Verificar que el sistema responde en el servidor
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_APP_DIR: ${{ secrets.EC2_APP_DIR }}
+        run: |
+          ssh -i ~/.ssh/ec2.pem "$EC2_USER@$EC2_HOST" bash -s -- "$EC2_APP_DIR" <<'REMOTO'
+          cd "$1"
+          # Puerto del sistema segun el .env del servidor (8080 si no esta definido)
+          PUERTO=$(grep -E '^APP_PORT=' .env 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r"')
+          PUERTO=${PUERTO:-8080}
+          for i in $(seq 1 30); do
+            curl -fsS -o /dev/null "http://localhost:$PUERTO" && echo "Sistema arriba en el puerto $PUERTO" && exit 0
+            sleep 4
+          done
+          docker compose logs app --tail=100
+          exit 1
+          REMOTO
+
+      - name: Borrar la llave del runner
+        if: always()
+        run: rm -f ~/.ssh/ec2.pem
+

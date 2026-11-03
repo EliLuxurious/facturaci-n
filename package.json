@@ -1,0 +1,20 @@
+{
+  "name": "facturacion-pruebas-regresion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Suite de pruebas de regresion E2E con Playwright para el sistema de facturacion electronica",
+  "scripts": {
+    "test": "playwright test",
+    "test:critico": "playwright test --grep @critico",
+    "test:cambios": "playwright test --only-changed=origin/main",
+    "test:ui": "playwright test --ui",
+    "test:visible": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "reporte": "playwright show-report",
+    "medir": "node scripts/medir-estrategias.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "wait-on": "8.0.3"
+  }
+}

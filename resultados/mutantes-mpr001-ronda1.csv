@@ -1,0 +1,7 @@
+mutante;descripcion;resultado;pruebas_que_fallaron
+M1;Quitar la regla que bloquea archivos ocultos (.env .git);muerto;SEG-04
+M2;Quitar la regla que bloquea carpetas internas (BD api/certificado ...);vivo;
+M3;Quitar el bloqueo por extension (sql pfx env ...);vivo;
+M4;Quitar las tres protecciones del .htaccess;muerto;SEG-01 SEG-02 SEG-03 SEG-04
+M5;Conexion.php imprime las credenciales al cargarse;muerto;SEG-05
+M6;Volver a dejar credenciales escritas en el codigo (root/root por defecto);vivo;

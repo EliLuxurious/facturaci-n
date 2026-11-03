@@ -2,4 +2,15 @@ Options All -Indexes
 
 RewriteEngine On
 
+# MPR-001 (preventivo): impedir que desde el navegador se descarguen archivos con
+# credenciales o datos sensibles. Responde "404 No encontrado".
+#  - Archivos y carpetas ocultos: .env, .git, .htaccess, etc.
+RewriteRule (^|/)\.(?!well-known/) - [R=404,L]
+#  - Carpetas que no son parte de la web: respaldo de BD, certificados, Docker, pruebas
+RewriteRule ^(BD|docker|tests|scripts|resultados|node_modules|vendor|api/certificado|playwright-report|test-results)(/|$) - [R=404,L]
+
+<FilesMatch "\.(sql|pfx|p12|pem|key|crt|env|log|ini)$">
+    Require all denied
+</FilesMatch>
+
 RewriteRule ^([-a-zA-Z0-9]+)$ index.php?ruta=$1

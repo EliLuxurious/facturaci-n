@@ -227,6 +227,7 @@ $tiem = time();
         $_GET["ruta"] == "listar-cotizaciones" ||
         $_GET["ruta"] == "consulta-comprobante" ||
         $_GET["ruta"] == "unidad-medida" ||
+        $_GET["ruta"] == "cuentas-por-cobrar" ||
         $_GET["ruta"] == "salir"
       ) {
 
@@ -279,6 +280,7 @@ $tiem = time();
   <script src="vistas/js/guia.js?q=<?php echo $tiempo; ?>"></script>
   <script src="vistas/js/cuotas.js"></script>
   <script src="vistas/js/cotizacion.js"></script>
+  <script src="vistas/js/cuentas-cobrar.js"></script>
 
   <script>
     $(document).ready(function() {

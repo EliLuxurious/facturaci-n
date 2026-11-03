@@ -34,6 +34,10 @@ RUN a2enconf custom
 
 COPY docker/php.ini $PHP_INI_DIR/conf.d/custom.ini
 
+# OpenSSL 3: habilitar proveedor legacy para poder leer el certificado .pfx y firmar XML
+COPY docker/openssl-legacy.cnf /etc/ssl/openssl-legacy.cnf
+ENV OPENSSL_CONF=/etc/ssl/openssl-legacy.cnf
+
 # Copiar Composer (para gestión de dependencias y autoload)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
