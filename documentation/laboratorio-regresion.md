@@ -116,11 +116,14 @@ La comparación permitirá comprobar una conclusión del informe: **TIA reduce e
 | Git | 2.30 | `git --version` |
 | Docker Engine / Docker Desktop | 24 | `docker --version` |
 | Docker Compose | v2 | `docker compose version` |
-| Node.js (opcional) | 22 | `node -v` |
-| npm (opcional) | 10 | `npm -v` |
+| Node.js (recomendado para métricas) | 22 | `node -v` |
+| npm (incluido con Node.js) | 10 | `npm -v` |
 | Cuenta de GitHub | — | <https://github.com> |
+| GitHub CLI (opcional) | 2.40 | `gh --version` |
 
-> **Ruta sin Node.js:** todo el laboratorio se puede ejecutar con Docker. La suite tiene su propio contenedor `e2e` con Playwright y los navegadores preinstalados. La ruta con Node.js solo es necesaria si se quiere abrir el reporte HTML o ejecutar comandos de medición con más comodidad.
+> **Ruta con Docker:** la suite completa y la crítica se pueden ejecutar con el contenedor `e2e`, que ya trae Playwright y los navegadores preinstalados. Para las mediciones (`scripts/medir.mjs`), los escenarios TIA y la regresión simulada se recomienda Node.js en el host; si no lo tienes, ejecuta esos comandos dentro del mismo contenedor (el repositorio está montado en `/repo`). La ruta con Node.js también es la más cómoda para abrir el reporte HTML.
+>
+> **Node.js para métricas:** las mediciones de la Parte 3 y los escenarios TIA se ejecutan con Node.js en el host. Si usas el contenedor `e2e`, recuerda que este trabaja con 2 workers y reintentos de CI (`CI=true`), por lo que los tiempos no serán comparables con la tabla de referencia. Para la exposición se recomienda la ruta con Node.js.
 
 ### 3.2 Puertos y recursos
 
@@ -159,9 +162,14 @@ Si `docker compose version` falla, actualice Docker Desktop o instale el plugin 
 ```bash
 git clone https://github.com/EliLuxurious/facturaci-n.git
 cd facturaci-n
+
+# Si el laboratorio se distribuye en una rama, cámbiala:
+# git checkout lab/regresion
 ```
 
-> **Nota para el docente:** el paquete del laboratorio incluye las carpetas `e2e/`, `scripts/` y `.github/workflows/`. Si trabaja desde una copia del repositorio que no las tiene, cópielas antes de continuar. Verifique con `ls e2e .github/workflows`.
+> **Nota para el docente:** el paquete del laboratorio incluye las carpetas `e2e/`, `scripts/` y `.github/workflows/`. Si trabajas desde una copia del repositorio que no las tiene, cambia a la rama del laboratorio (`git branch -a`) o cópialas antes de continuar. Verifica con `ls e2e .github/workflows`.
+>
+> Si `ls e2e` falla, no continúes con la Parte 2: primero necesitas la suite.
 
 ### 4.2 Crear el archivo de entorno
 
@@ -242,7 +250,7 @@ phpMyAdmin está disponible en <http://localhost:8081> con usuario `root` y cont
 | `port is already allocated` | Otro servicio usa 8080/8081/3306. | Cambie los puertos en `.env` y ejecute `docker compose up -d`. |
 | La página responde 500 | La base de datos aún no terminó de inicializarse. | Espere 20 s y recargue; revise `docker compose logs db`. |
 | `Connection refused` en la base | El contenedor `db` no está *healthy*. | `docker compose ps` y `docker compose logs db`. |
-| Login no redirige | Credenciales incorrectas o sesión previa. | Use `demo` / `123456`; abra una ventana privada. |
+| Login no redirige | Usuario inexistente o sesión previa. | Use `demo` / `123456`; abra una ventana privada. |
 | Quiere reiniciar todo | Datos de pruebas acumulados. | `docker compose down -v && docker compose up -d --build`. |
 
 > `docker compose down -v` **borra** el volumen de la base de datos. Úselo solo para reiniciar el laboratorio.
@@ -279,7 +287,7 @@ e2e/
 Descripción breve:
 
 - `playwright.config.ts`: URL base, navegadores, reintentos, reportes HTML/JSON y capturas en caso de fallo.
-- `tests/helpers/auth.ts`: función `iniciarSesion()` reutilizable y generador de datos únicos.
+- `tests/helpers/auth.ts`: función `iniciarSesion()` reutilizable, generador de datos únicos y neutralización del overlay de carga.
 - `tests/*.spec.ts`: casos organizados por módulo. Las pruebas con `@critico` forman la suite de riesgo.
 - `scripts/resumen.mjs`: convierte el JSON de Playwright en una tabla Markdown para el informe.
 - `scripts/medir.mjs`: calcula la mediana de tiempo y la reducción entre dos grupos de ejecuciones.
@@ -307,7 +315,7 @@ Salida esperada:
 31 passed (1.0m)
 ```
 
-> La ejecución tarda alrededor de un minuto porque el contenedor usa 2 workers y reintentos de CI. En local con Node y 8 workers baja a 25–30 s.
+> La ejecución tarda alrededor de un minuto porque el contenedor usa 2 workers y reintentos de CI. En local con Node y varios workers baja a 25–35 s según el equipo.
 
 Para ejecutar solo la suite crítica:
 
@@ -336,7 +344,7 @@ npm run report
 ### 5.4 Interpretar el resultado
 
 - **31 passed**: la suite terminó sin fallos inesperados. Playwright cuenta las pruebas con `test.fail()` como aprobadas cuando fallan como se esperaba.
-- `DEF-01` no aparece como roja en el resumen: está marcada con `test.fail()` y documenta un defecto real de autenticación (anexo B). En el reporte HTML se ve la anotación que explica por qué se espera ese fallo.
+- `DEF-01` aparece con `✘` en la lista porque usa `test.fail()`, pero **no cuenta como fallo inesperado**: el resumen global sigue en verde. Documenta un defecto real de autenticación (anexo B) y en el reporte HTML se ve la anotación que explica por qué se espera ese fallo.
 - Si hay fallos inesperados, Playwright guarda captura, video y traza en `e2e/test-results/`. Abra la traza con:
 
 ```bash
@@ -345,7 +353,7 @@ npx playwright show-trace test-results/<carpeta>/trace.zip
 
 ### 5.5 Generar el primer reporte JSON
 
-Desde la raíz del repositorio (si viene de la sección anterior, ejecute `cd ..`):
+Desde la raíz del repositorio. Si vienes de `e2e`, ejecuta `cd ..` antes de empezar:
 
 ```bash
 cd e2e
@@ -361,16 +369,23 @@ Guarde el resultado: será la línea base de la estrategia completa.
 
 ## 6. Parte 3: aplicar las estrategias de regresión
 
+> **Convención de rutas:** los comandos indican la carpeta desde la que se ejecutan. Si ya estás en `e2e`, omite `cd e2e`; si ya estás en la raíz, omite `cd ..`.
+
 > **Antes de empezar:** la estrategia TIA necesita un repositorio Git con la suite ya confirmada. Cree una rama de trabajo y confirme los archivos.
 
 ```bash
-cd ..   # volver a la raíz del repositorio
+cd ..   # volver a la raíz del repositorio (omitir si ya estás en la raíz)
 git checkout -b lab/regresion
 git add e2e scripts .github docker-compose.yml .gitignore .dockerignore
 git commit -m "lab: suite de regresion y pipeline CI/CD"
 ```
 
-Si el repositorio ya trae esos archivos confirmados, basta con crear la rama y hacer un commit vacío o continuar con los cambios propios.
+Si el repositorio ya trae esos archivos confirmados, o si ya estás en la rama `lab/regresion`, **omite este bloque** y continúa con el punto 6.1. Verifícalo con:
+
+```bash
+git status
+git log --oneline -1
+```
 
 ### 6.1 Estrategia completa (retest-all)
 
@@ -388,12 +403,15 @@ done
 node scripts/medir.mjs resultados/mediciones/completa-*.json
 ```
 
-Salida de referencia (equipo del autor, 8 workers):
+Salida esperada (equipo del autor, 8 workers; el tiempo varía según el equipo):
 
 ```text
-| Grupo | Ejecuciones | Pruebas (mediana) | Tiempo mediana (s) |
-| Grupo 1 | 5 | 31 | 27.5 |
+| Grupo | Ejecuciones | Pruebas (mediana) | Tiempo mediana (s) | Min (s) | Max (s) | Fallidas |
+|---|---:|---:|---:|---:|---:|---:|
+| Grupo 1 | 5 | 31 | 25.4 | 24.8 | 27.5 | 0 |
 ```
+
+> **Nota:** si aparece una prueba fallida, revise el Anexo C antes de registrar la medición. La suite debe quedar en **0 fallos** para tomar la línea base.
 
 Anote en la tabla del informe:
 
@@ -412,7 +430,7 @@ Playwright implementa una forma estática y de granularidad gruesa de TIA con `-
 #### Escenario A: se modifica una prueba
 
 ```bash
-cd ..   # raíz del repositorio
+cd ..   # raíz del repositorio (omitir si ya estás en la raíz)
 echo "// ajuste de prueba para el laboratorio" >> e2e/tests/dashboard.spec.ts
 cd e2e
 npx playwright test --project=chromium --only-changed=HEAD --list
@@ -435,7 +453,7 @@ PLAYWRIGHT_JSON_OUTPUT_NAME=resultados/tia-spec.json \
 Vuelva a dejar la prueba como estaba:
 
 ```bash
-cd ..
+cd ..   # raíz del repositorio (omitir si ya estás en la raíz)
 git checkout -- e2e/tests/dashboard.spec.ts
 ```
 
@@ -493,6 +511,8 @@ Running 31 tests using 8 workers
 
 La prueba falla porque el enlace ya no tiene `href="crear-factura"` sino `href="crear-factura-rota"`, y el localizador espera el atributo original. Este es el contraste que busca el laboratorio: con `HEAD` (Escenario B) TIA no ve el cambio y da un falso verde; con la rama base (Escenario C) sí lo ve, porque los cambios confirmados de la rama entran en la comparación.
 
+> **Si tu rama parte de una base que ya contiene `e2e/`**, el número de pruebas seleccionadas puede ser menor que 31. Lo importante es que `origin/main` exista y que la comparación incluya los cambios confirmados de la rama; el resultado puede variar, pero la referencia base debe encontrar la regresión si el cambio forma parte de la rama.
+
 | Estado del parche | Pruebas ejecutadas | Resultado esperado |
 |---|---:|---|
 | Aplicado (después del Escenario B) | 31 | 1 fallo en `dashboard.spec.ts` y 30 aprobadas |
@@ -503,7 +523,7 @@ La prueba falla porque el enlace ya no tiene `href="crear-factura"` sino `href="
 Vuelva a la raíz del repositorio y revierta el parche antes de continuar:
 
 ```bash
-cd ..
+cd ..   # raíz del repositorio (omitir si ya estás en la raíz)
 git apply -R e2e/cambios/regresion-simulada.patch
 git status
 ```
@@ -570,7 +590,7 @@ Las pruebas de navegación y búsqueda quedan fuera de `@critico` porque detecta
 Con la suite en verde, aplique el cambio simulado:
 
 ```bash
-cd ..   # raíz del repositorio
+cd ..   # raíz del repositorio (omitir si ya estás en la raíz)
 git apply e2e/cambios/regresion-simulada.patch
 ```
 
@@ -591,7 +611,7 @@ Resultado esperado: **1 fallo** y **30 aprobadas**. El fallo es en `dashboard.sp
 npx playwright test --project=chromium --grep @critico --reporter=line
 ```
 
-Resultado esperado: **1 fallo**. La suite crítica también la detecta, porque el acceso a factura está etiquetado como crítico.
+Resultado esperado: **1 fallo** y **7 aprobadas**. La suite crítica también la detecta, porque el acceso a factura está etiquetado como crítico.
 
 **c) TIA sobre el cambio de aplicación:**
 
@@ -615,7 +635,7 @@ Registre la comparación:
 **d) Revertir el cambio:**
 
 ```bash
-cd ..
+cd ..   # raíz del repositorio (omitir si ya estás en la raíz)
 git apply -R e2e/cambios/regresion-simulada.patch
 cd e2e
 npx playwright test --project=chromium --grep @critico --reporter=line
@@ -686,12 +706,20 @@ El workflow también se puede lanzar manualmente desde **Actions → regresion �
 ### 7.3 Publicar el repositorio y abrir el pull request
 
 ```bash
-cd ..   # raíz del repositorio
+cd ..   # raíz del repositorio (omitir si ya estás en la raíz)
 git status
+
+# Si hay cambios pendientes:
 git add e2e scripts .github docker-compose.yml .gitignore .dockerignore
 git commit -m "lab: suite de regresion y pipeline CI/CD"
+
+# Publicar la rama (si aún no tiene upstream):
 git push -u origin lab/regresion
 ```
+
+> Si `git commit` responde `nothing to commit`, la suite ya estaba confirmada: continúa directamente con `git push`. Si modificaste la documentación, agrégala también con `git add documentation`.
+>
+> Si el pull request muestra conflictos, actualiza la rama con `git fetch origin && git merge origin/main` y vuelve a hacer push.
 
 En GitHub:
 
@@ -702,7 +730,7 @@ En GitHub:
 
 ### 7.4 Qué observar en la ejecución
 
-- **TIA**: puede ejecutar 0 pruebas si el cambio solo toca archivos PHP. Es el comportamiento esperado y demuestra la limitación.
+- **TIA**: en este PR la rama agrega toda la carpeta `e2e/` respecto de `main`, por lo que TIA ejecutará las 31 pruebas. Para observar el caso de 0 pruebas, usa un PR posterior que solo toque archivos PHP (o el Escenario B local). Es el comportamiento esperado y demuestra la limitación.
 - **Crítica**: debe ejecutar 8 pruebas. Si el cambio rompe un flujo crítico, el job falla.
 - **Resumen**: al final del job aparece una tabla con pruebas esperadas, fallidas e inestables.
 - **Artefactos**: descargue `reporte-pr` para ver el HTML, las capturas y las trazas.
@@ -724,6 +752,8 @@ git pull
 git merge lab/regresion
 git push origin main
 ```
+
+> Si fusionaste el pull request desde GitHub, `main` ya contiene los cambios: ejecuta solo `git checkout main && git pull` y omite el `git merge`.
 
 Se dispara `regresion-integracion` con 4 fragmentos. Verifique que los cuatro terminen en verde y que la suma de pruebas sea 31.
 
@@ -815,6 +845,12 @@ Conclusión: la cifra es plausible en ciertos contextos, pero no debe presentars
 8. Ejecución nocturna con los tres navegadores.
 9. Tabla de métricas completa.
 
+Cree la carpeta si no existe:
+
+```bash
+mkdir -p docs/evidencias
+```
+
 Guarde las capturas en:
 
 ```text
@@ -840,7 +876,7 @@ Use la tabla del capítulo VII del informe:
 | 7.3 Suite | Tabla de 31 pruebas y 8 críticas. |
 | 7.4 Estrategias | Comandos y resultados de completa, TIA y riesgo. |
 | 7.5 Pipeline | `.github/workflows/regresion.yml` y capturas de Actions. |
-| 7.6 Resultados | Tabla 9 completa. |
+| 7.6 Resultados | Tabla 9 del informe completa (equivale a la tabla de métricas del apartado 8.2). |
 | 7.7 Evidencias | Capturas y enlaces a ejecuciones. |
 
 ---
@@ -876,13 +912,16 @@ Use la tabla del capítulo VII del informe:
 - [ ] `docker compose ps` muestra los contenedores arriba.
 - [ ] `docker compose --profile test run --rm e2e` termina en verde.
 - [ ] `npm run test:critico` ejecuta 8 pruebas.
+- [ ] Los cambios de las pruebas están confirmados antes de medir TIA.
 - [ ] El parche de regresión produce 1 fallo en la suite completa.
 - [ ] El parche de regresión produce 1 fallo en la suite crítica.
 - [ ] TIA sobre el cambio de app ejecuta 0 pruebas (limitación documentada).
-- [ ] El pull request ejecuta `regresion-pr` en menos de 10 minutos.
+- [ ] El parche se revierte y la suite vuelve a **31 passed**.
+- [ ] La rama `lab/regresion` está publicada y el PR apunta a `main`.
+- [ ] El pull request ejecuta `regresion-pr` en menos de 10 minutos y queda en verde.
 - [ ] La integración en `main` ejecuta 4 fragmentos.
 - [ ] La ejecución nocturna usa Chromium, Firefox y WebKit.
-- [ ] La tabla de métricas está completa y firmada por el estudiante.
+- [ ] La tabla de métricas está completa y respaldada por las capturas.
 
 ---
 
@@ -894,7 +933,7 @@ Use la tabla del capítulo VII del informe:
 |---|---|
 | `e2e/playwright.config.ts` | Configuración de Playwright. |
 | `e2e/package.json` | Dependencias y scripts. |
-| `e2e/tests/helpers/auth.ts` | Login reutilizable. |
+| `e2e/tests/helpers/auth.ts` | Login reutilizable y neutralización del overlay de carga. |
 | `e2e/tests/*.spec.ts` | Casos de prueba. |
 | `e2e/scripts/resumen.mjs` | Tabla Markdown desde JSON. |
 | `e2e/scripts/medir.mjs` | Medianas y reducción. |
@@ -906,7 +945,7 @@ Use la tabla del capítulo VII del informe:
 
 ### Anexo B. Hallazgos y mantenimiento correctivo opcional
 
-#### DEF-01: el login acepta cualquier contraseña alfanumérica
+#### DEF-01: el login acepta cualquier contraseña alfanumérica de un usuario existente
 
 **Evidencia:** en `Controladores/ControladorUsuarios.php`, la comparación del hash está comentada y el bloque se ejecuta con `if (true)`:
 
@@ -918,6 +957,8 @@ if (true) {
 La prueba `DEF-01` de `auth.spec.ts` documenta el comportamiento actual con `test.fail()`.
 
 **Corrección sugerida (opcional):**
+
+> No reemplaces el `if (True)` que valida la respuesta de reCAPTCHA. La corrección se aplica solo a la comprobación de la contraseña y, en la rama con reCAPTCHA, también a la comprobación del estado.
 
 En las dos ramas de `ctrIngresoUsuario` (con y sin reCAPTCHA), reemplace:
 
@@ -974,12 +1015,14 @@ No es un defecto del sistema, sino una limitación de `--only-changed`: el archi
 | `net::ERR_CONNECTION_REFUSED` en el contenedor `e2e` | Verifique que `app` esté arriba y que el servicio use `BASE_URL=http://app.local`. |
 | `--only-changed` devuelve 0 pruebas | Es esperado si solo cambió código de la app; documente la limitación. |
 | `--only-changed=origin/main` falla | El clon es superficial; use `fetch-depth: 0`. |
+| `git apply` falla con `patch does not apply` | El parche ya está aplicado o el archivo cambió. Use `git apply -R e2e/cambios/regresion-simulada.patch` o `git checkout -- vistas/modulos/menu-rapido.php`. |
+| `git apply -R` falla | El parche no está aplicado. Verifique `git status` y no lo revierta dos veces. |
 | Los reportes quedan con propietario `root` | `sudo chown -R "$USER":"$USER" e2e/test-results e2e/playwright-report e2e/resultados`. |
 | El login no funciona tras cambiar la clave | Restaure `demo` / `123456` o use `docker compose down -v` para reiniciar la base. |
 | Las pruebas acumulan datos | Use nombres únicos (la suite ya lo hace) o reinicie el volumen. |
 | Una prueba falla con `intercepts pointer events` | El overlay global `.reload-all` quedó visible por una petición de fondo fallida. La suite lo neutraliza en `tests/helpers/auth.ts` (`neutralizarOverlayCarga`); verifique que ese helper esté aplicado y repita la medición. |
 | GitHub Actions no ejecuta el workflow | Verifique que el archivo esté en `.github/workflows/` y que Actions esté habilitado. |
-| El job de PR falla en TIA | Revise si el cambio afecta una prueba; si no, es la limitación esperada. El job debe fallar solo si falla `@critico`. |
+| El job de PR falla en TIA | Revise si el cambio afecta una prueba; si no, es la limitación esperada. El job falla si hay pruebas inesperadas en TIA o en `@critico`. |
 
 ### Anexo D. Chuleta de comandos
 
@@ -1055,6 +1098,52 @@ Para eliminar los artefactos de prueba:
 ```bash
 rm -rf e2e/test-results e2e/playwright-report e2e/resultados
 ```
+
+### Anexo G. Guion sugerido para la exposición (10–12 minutos)
+
+| Minuto | Qué mostrar | Mensaje clave |
+|---|---|---|
+| 0–1 | Contexto: sistema legado y cambio perfectivo en el menú de facturación. | Un cambio pequeño en la interfaz puede romper un flujo crítico. |
+| 1–3 | `docker compose ps` y login `demo` / `123456`. | El entorno es reproducible con un comando. |
+| 3–4 | `npx playwright test --grep @critico`. | 8 pruebas cubren los flujos de mayor riesgo; `DEF-01` es un fallo esperado. |
+| 4–6 | Tabla de métricas: 31 vs 8 pruebas, ~25 s vs ~8 s. | La suite crítica reduce ~74 % de las pruebas y ~68 % del tiempo. |
+| 6–8 | Aplicar el parche: suite completa con 1 fallo; TIA con 0 pruebas; revertir. | TIA es rápido, pero ciego a los cambios del backend PHP. |
+| 8–10 | Workflow: PR (TIA + crítica), `main` (4 shards) y nocturna (3 navegadores). | El pipeline combina eficiencia y cobertura. |
+| 10–12 | Conclusiones y limitaciones. | Usar TIA para cambios de pruebas y complementarla con riesgo y regresión completa. |
+
+**Comandos para la demo (desde la raíz del repositorio):**
+
+```bash
+# 1. Estado del entorno
+docker compose ps
+
+# 2. Suite crítica
+cd e2e
+npx playwright test --project=chromium --grep @critico
+
+# 3. Regresión simulada
+cd ..
+git apply e2e/cambios/regresion-simulada.patch
+cd e2e
+npx playwright test --project=chromium --grep @critico       # 1 fallo esperado
+npx playwright test --project=chromium --only-changed=HEAD \
+  --pass-with-no-tests --list                                # 0 pruebas
+cd ..
+git apply -R e2e/cambios/regresion-simulada.patch
+cd e2e
+npx playwright test --project=chromium --grep @critico       # 8 passed
+npx playwright test --project=chromium                       # 31 passed (opcional)
+```
+
+**Preguntas frecuentes del jurado:**
+
+| Pregunta | Respuesta breve |
+|---|---|
+| ¿Por qué TIA no detecta la regresión? | El cambio está en PHP y no pertenece al grafo de importaciones de las pruebas; `--only-changed` solo ve pruebas y sus imports. |
+| ¿Por qué `DEF-01` aparece con `✘` y el pipeline sigue verde? | Usa `test.fail()`: es un fallo esperado que documenta un defecto conocido. |
+| ¿No basta con TIA para ahorrar tiempo? | No en E2E: reduce tiempo, pero puede dar falsos verdes. Se complementa con `@critico` y la regresión completa. |
+| ¿Cómo se evita que la suite sea inestable? | Datos únicos, esperas por estado, neutralización del overlay de carga y reintentos en CI. |
+| ¿Qué evidencia demuestra la detección? | El fallo de `dashboard.spec.ts` con el parche, el reporte HTML, los JSON y el job de Actions. |
 
 ---
 
