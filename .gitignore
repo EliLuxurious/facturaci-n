@@ -1,0 +1,7 @@
+# Variables de entorno locales
+.env
+
+# Archivos temporales del sistema
+Thumbs.db
+.DS_Store
+
