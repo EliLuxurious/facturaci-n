@@ -1,0 +1,232 @@
+name: regresion
+
+# Etapa 1: cada pull request (TIA + suite critica por riesgo)
+# Etapa 2: cada push a main (regresion completa en paralelo)
+# Etapa 3: ejecucion nocturna en Chromium, Firefox y WebKit
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *' # 06:00 UTC = 01:00 hora de Peru
+  workflow_dispatch:
+
+concurrency:
+  group: regresion-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  BASE_URL: http://localhost:8080
+  E2E_USER: demo
+  E2E_PASS: '123456'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Etapa 1: pull request. Presupuesto: menos de 10 minutos.
+  # ---------------------------------------------------------------------------
+  regresion-pr:
+    name: Regresion PR (TIA + @critico)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Clonar con historial completo (necesario para --only-changed)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Levantar la aplicacion y la base de datos
+        run: |
+          cp .env.example .env
+          docker compose up -d --build
+
+      - name: Esperar a que la aplicacion responda
+        run: bash scripts/wait-for-app.sh
+
+      - name: Instalar dependencias de la suite
+        working-directory: e2e
+        run: npm ci --no-audit --no-fund
+
+      - name: Instalar Chromium
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: TIA - pruebas impactadas por el cambio
+        id: tia
+        working-directory: e2e
+        continue-on-error: true
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: resultados/tia.json
+        run: |
+          npx playwright test \
+            --project=chromium \
+            --only-changed=origin/${{ github.base_ref }} \
+            --pass-with-no-tests \
+            --reporter=line,json
+
+      - name: Riesgo - suite critica
+        id: critico
+        working-directory: e2e
+        continue-on-error: true
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: resultados/critico.json
+        run: npx playwright test --project=chromium --grep @critico --reporter=line,json
+
+      - name: Resumen de metricas
+        if: always()
+        working-directory: e2e
+        run: node scripts/resumen.mjs resultados/tia.json resultados/critico.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publicar reportes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-pr
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+            e2e/resultados/
+          retention-days: 14
+
+      - name: Diagnostico de la aplicacion
+        if: failure()
+        run: docker compose logs --tail=200
+
+      - name: Verificar el resultado de la etapa
+        if: always()
+        working-directory: e2e
+        run: node scripts/verificar.mjs resultados/tia.json resultados/critico.json
+
+  # ---------------------------------------------------------------------------
+  # Etapa 2: integracion en main. Regresion completa en 4 fragmentos.
+  # ---------------------------------------------------------------------------
+  regresion-integracion:
+    name: Integracion main (shard ${{ matrix.shard }}/4)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Levantar la aplicacion y la base de datos
+        run: |
+          cp .env.example .env
+          docker compose up -d --build
+
+      - name: Esperar a que la aplicacion responda
+        run: bash scripts/wait-for-app.sh
+
+      - name: Instalar dependencias de la suite
+        working-directory: e2e
+        run: npm ci --no-audit --no-fund
+
+      - name: Instalar Chromium
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Regresion completa del fragmento
+        working-directory: e2e
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: resultados/shard-${{ matrix.shard }}.json
+        run: npx playwright test --project=chromium --shard=${{ matrix.shard }}/4 --reporter=line,json
+
+      - name: Resumen del fragmento
+        if: always()
+        working-directory: e2e
+        run: node scripts/resumen.mjs resultados/shard-${{ matrix.shard }}.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publicar reporte del fragmento
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-shard-${{ matrix.shard }}
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+            e2e/resultados/
+          retention-days: 14
+
+      - name: Diagnostico de la aplicacion
+        if: failure()
+        run: docker compose logs --tail=200
+
+  # ---------------------------------------------------------------------------
+  # Etapa 3: ejecucion nocturna en los tres motores de navegador.
+  # ---------------------------------------------------------------------------
+  regresion-nocturna:
+    name: Nocturna (Chromium, Firefox y WebKit)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Levantar la aplicacion y la base de datos
+        run: |
+          cp .env.example .env
+          docker compose up -d --build
+
+      - name: Esperar a que la aplicacion responda
+        run: bash scripts/wait-for-app.sh
+
+      - name: Instalar dependencias de la suite
+        working-directory: e2e
+        run: npm ci --no-audit --no-fund
+
+      - name: Instalar los tres navegadores
+        working-directory: e2e
+        run: npx playwright install --with-deps
+
+      - name: Regresion completa en tres navegadores
+        working-directory: e2e
+        env:
+          BROWSERS: all
+          PLAYWRIGHT_JSON_OUTPUT_NAME: resultados/nocturna.json
+        run: npx playwright test --reporter=line,json
+
+      - name: Resumen de la ejecucion nocturna
+        if: always()
+        working-directory: e2e
+        run: node scripts/resumen.mjs resultados/nocturna.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publicar reporte nocturno
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-nocturna
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+            e2e/resultados/
+          retention-days: 14
+
+      - name: Diagnostico de la aplicacion
+        if: failure()
+        run: docker compose logs --tail=200

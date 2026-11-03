@@ -6,3 +6,6 @@
 .env.example
 docker-compose*.yml
 
+# Suite E2E y documentacion: no forman parte de la imagen de la aplicacion
+e2e
+documentation

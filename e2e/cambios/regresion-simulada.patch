@@ -1,0 +1,14 @@
+diff --git a/vistas/modulos/menu-rapido.php b/vistas/modulos/menu-rapido.php
+index 206feba..5460ba9 100644
+--- a/vistas/modulos/menu-rapido.php
++++ b/vistas/modulos/menu-rapido.php
+@@ -2,7 +2,7 @@
+ <label for="checkm" id="lblch" class="btn btn-menur"><i class="fas fa-bars"></i></label>
+ 
+ <div id="contenedor-menur">
+-<a href="crear-factura" class="btn-a" style="margin-left:10px"><i class="fas fa-file-invoice fa-lg"></i> Emitir factura</a>
++<a href="crear-factura-rota" class="btn-a" style="margin-left:10px"><i class="fas fa-file-invoice fa-lg"></i> Emitir factura</a>
+ <a href="crear-boleta" class="btn-a"><i class="fas fa-file-invoice fa-lg"> </i> Emitir boleta</a>
+ <a href="crear-nota" class="btn-a"><i class="fas fa-file-invoice fa-lg"> </i> Nota de Venta</a>
+ </div>
+\ No newline at end of file

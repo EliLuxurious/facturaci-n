@@ -1,0 +1,20 @@
+{
+  "name": "facturacion-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Suite de regresion E2E del Sistema de Facturacion Electronica",
+  "scripts": {
+    "test": "playwright test",
+    "test:critico": "playwright test --grep @critico",
+    "test:chromium": "playwright test --project=chromium",
+    "test:changed": "playwright test --project=chromium --only-changed=origin/main --pass-with-no-tests",
+    "report": "playwright show-report",
+    "test:changed:local": "playwright test --project=chromium --only-changed=HEAD --pass-with-no-tests",
+    "resumen": "node scripts/resumen.mjs",
+    "medir": "node scripts/medir.mjs",
+    "verificar": "node scripts/verificar.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

@@ -5,3 +5,14 @@
 Thumbs.db
 .DS_Store
 
+
+# Suite E2E: dependencias y artefactos generados
+e2e/node_modules/
+e2e/test-results/
+e2e/playwright-report/
+e2e/resultados/
+e2e/playwright/.auth/
+e2e/.auth/
+
+# Informe de investigacion: se mantiene solo en local, no se publica
+documentation/informe.md
