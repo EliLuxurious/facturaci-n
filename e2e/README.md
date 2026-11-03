@@ -36,7 +36,7 @@ docker compose --profile test run --rm e2e sh -c "npm ci --no-audit --no-fund &&
 
 ## Estructura
 
-- `tests/helpers/auth.ts`: login reutilizable.
+- `tests/helpers/auth.ts`: login reutilizable y neutralizacion del overlay de carga.
 - `tests/auth.spec.ts`: acceso, cierre de sesion y defecto DEF-01.
 - `tests/dashboard.spec.ts`: indicadores y accesos directos.
 - `tests/navegacion.spec.ts`: humo de los modulos.

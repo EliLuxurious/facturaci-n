@@ -476,7 +476,31 @@ npx playwright test --project=chromium \
 
 Requiere `fetch-depth: 0` en `actions/checkout`; de lo contrario Git no encuentra `origin/main`.
 
-Vuelva a la rama principal y revierta el parche antes de continuar:
+**Estado de partida:** el parche del Escenario B sigue aplicado.
+
+**Resultado esperado:** al comparar contra `origin/main`, Playwright selecciona las pruebas que difieren de la rama base. En esta rama eso equivale a toda la suite (31 pruebas), porque `e2e/` es nuevo respecto de `origin/main`. Con el parche aplicado, la regresión **sí se detecta**:
+
+```text
+Running 31 tests using 8 workers
+
+  ✓  ...
+  ✘  [chromium] › tests/dashboard.spec.ts:16:7 › Panel de control › @critico el acceso directo Emitir factura abre la pantalla de factura
+
+  1 failed
+    [chromium] › tests/dashboard.spec.ts:16:7 › Panel de control › @critico el acceso directo Emitir factura abre la pantalla de factura
+  30 passed
+```
+
+La prueba falla porque el enlace ya no tiene `href="crear-factura"` sino `href="crear-factura-rota"`, y el localizador espera el atributo original. Este es el contraste que busca el laboratorio: con `HEAD` (Escenario B) TIA no ve el cambio y da un falso verde; con la rama base (Escenario C) sí lo ve, porque los cambios confirmados de la rama entran en la comparación.
+
+| Estado del parche | Pruebas ejecutadas | Resultado esperado |
+|---|---:|---|
+| Aplicado (después del Escenario B) | 31 | 1 fallo en `dashboard.spec.ts` y 30 aprobadas |
+| Revertido | 31 | 31 aprobadas |
+
+> **Nota:** `DEF-01` aparece con `✘` porque usa `test.fail(...)`; se contabiliza como aprobada y no como fallo inesperado.
+
+Vuelva a la raíz del repositorio y revierta el parche antes de continuar:
 
 ```bash
 cd ..
@@ -484,11 +508,13 @@ git apply -R e2e/cambios/regresion-simulada.patch
 git status
 ```
 
+**Resultado esperado:** `git status` ya no muestra `vistas/modulos/menu-rapido.php` entre los archivos modificados. Si vuelve a ejecutar el comando del Escenario C, la suite queda en **31 aprobadas**; ese es el punto de partida en verde para las secciones 6.3 y 6.4.
+
 ### 6.3 Estrategia basada en riesgos
 
 **Definición:** ejecuta solo las pruebas de los flujos con mayor exposición. En la suite se identifican con la etiqueta `@critico`.
 
-Ejecute cinco veces:
+Ejecute desde la raíz del repositorio. Si ya está dentro de `e2e`, omita el `cd e2e`:
 
 ```bash
 cd e2e
@@ -499,12 +525,15 @@ done
 node scripts/medir.mjs resultados/mediciones/critico-*.json
 ```
 
-Salida de referencia:
+Salida esperada (el tiempo varia segun el equipo; lo importante es que no haya fallos):
 
 ```text
-| Grupo | Ejecuciones | Pruebas (mediana) | Tiempo mediana (s) |
-| Grupo 1 | 5 | 8 | 8.1 |
+| Grupo | Ejecuciones | Pruebas (mediana) | Tiempo mediana (s) | Min (s) | Max (s) | Fallidas |
+|---|---:|---:|---:|---:|---:|---:|
+| Grupo 1 | 5 | 8 | 8.0 | 7.8 | 8.7 | 0 |
 ```
+
+> **Nota:** una diferencia de uno o dos segundos no invalida la medicion. Si aparece una prueba fallida, revise el Anexo C antes de registrar el resultado.
 
 Compare las dos estrategias:
 
@@ -514,11 +543,13 @@ node scripts/medir.mjs \
   resultados/mediciones/critico-*.json
 ```
 
-Salida de referencia:
+Salida esperada (aproximada; los porcentajes de tiempo dependen del equipo):
 
 ```text
-Reduccion del grupo 2 respecto del grupo 1: 74.2 % en pruebas y 70.6 % en tiempo.
+Reduccion del grupo 2 respecto del grupo 1: 74.2 % en pruebas y 68-71 % en tiempo.
 ```
+
+La reduccion en pruebas debe ser exactamente 74.2 % (8 de 31). La reduccion en tiempo puede variar, pero debe rondar el 70 %.
 
 #### ¿Qué pruebas son críticas y por qué?
 
@@ -550,7 +581,9 @@ cd e2e
 npx playwright test --project=chromium --reporter=line
 ```
 
-Resultado esperado: **1 fallo** en `dashboard.spec.ts`, en la prueba `@critico el acceso directo Emitir factura abre la pantalla de factura`. La suite completa detecta la regresión.
+Resultado esperado: **1 fallo** y **30 aprobadas**. El fallo es en `dashboard.spec.ts`, en la prueba `@critico el acceso directo Emitir factura abre la pantalla de factura`. La suite completa detecta la regresión.
+
+> **Importante:** este fallo es intencional: es la evidencia de que la regresión fue detectada. No modifique la prueba ni el enlace. El paso 6.4d revierte el parche y devuelve la suite a verde.
 
 **b) Suite crítica:**
 
@@ -568,6 +601,8 @@ npx playwright test --project=chromium --only-changed=HEAD \
 ```
 
 Resultado esperado: **0 pruebas**. TIA no detecta la regresión.
+
+> **Nota:** este paso supone que los cambios de las pruebas ya están confirmados. Si tienes modificaciones sin confirmar en `e2e/tests`, `--only-changed=HEAD` las seleccionará y el resultado no será 0. Confirma esos cambios (o usa `git stash`) antes de medir TIA.
 
 Registre la comparación:
 
@@ -747,14 +782,14 @@ En el laboratorio, la inclusividad se aproxima con la regresión simulada: la pr
 
 ### 8.2 Tabla de resultados
 
-Complete con sus mediciones. Los valores de la última columna son **referencia del autor** (equipo con 8 workers y la aplicación en Docker local); no son un resultado universal.
+Complete con sus mediciones. Los valores de tiempo son **referencia del autor** (equipo con 8 workers y la aplicación en Docker local); no son un resultado universal.
 
 | Estrategia | Pruebas | Reducción de pruebas (%) | Tiempo mediana (s) | Tiempo de feedback (s) | Fallos detectados | Inclusividad (%) |
 |---|---:|---:|---:|---:|---:|---:|
-| Completa | 31 | 0 | 27.5 | ______ | 1/1 | 100 |
-| Crítica (`@critico`) | 8 | 74.2 | 8.1 | ______ | 1/1 | 100 |
-| TIA (solo app) | 0 | 100 | 0.08 | ______ | 0/1 | **0** |
-| TIA (prueba modificada) | 3 | 90.3 | 5.4 | ______ | — | — |
+| Completa | 31 | 0 | 25.4 | ______ | 1/1 | 100 |
+| Crítica (`@critico`) | 8 | 74.2 | 8.0 | ______ | 1/1 | 100 |
+| TIA (solo app) | 0 | 100 | 0.09 | ______ | 0/1 | **0** |
+| TIA (prueba modificada) | 3 | 90.3 | 5.7 | ______ | — | — |
 
 > **Advertencia metodológica:** TIA tiene la mayor reducción y la peor inclusividad en el escenario de cambio de aplicación. Reportar solo el ahorro sería engañoso; por eso el informe exige métricas pareadas de efectividad y eficiencia.
 
@@ -762,9 +797,9 @@ Complete con sus mediciones. Los valores de la última columna son **referencia 
 
 El informe cuestiona que TIA reduzca el tiempo entre 60 % y 80 % de forma general. En este laboratorio:
 
-- La suite crítica reduce **74.2 % de las pruebas** y **70.6 % del tiempo**, pero es una estrategia basada en riesgos, no TIA.
+- La suite crítica reduce **74.2 % de las pruebas** y alrededor de **68 % del tiempo** (68-71 % según el equipo), pero es una estrategia basada en riesgos, no TIA.
 - TIA reduce **100 %** en el cambio de aplicación, pero **no detecta la regresión** (inclusividad 0).
-- TIA sobre una prueba modificada reduce **90.3 % de las pruebas** y **80.5 % del tiempo**, pero solo porque el cambio está en la propia prueba.
+- TIA sobre una prueba modificada reduce **90.3 % de las pruebas** y alrededor de **77 % del tiempo**, pero solo porque el cambio está en la propia prueba.
 
 Conclusión: la cifra es plausible en ciertos contextos, pero no debe presentarse como una propiedad general de TIA. Depende de dónde esté el cambio y de qué se mida.
 
@@ -942,6 +977,7 @@ No es un defecto del sistema, sino una limitación de `--only-changed`: el archi
 | Los reportes quedan con propietario `root` | `sudo chown -R "$USER":"$USER" e2e/test-results e2e/playwright-report e2e/resultados`. |
 | El login no funciona tras cambiar la clave | Restaure `demo` / `123456` o use `docker compose down -v` para reiniciar la base. |
 | Las pruebas acumulan datos | Use nombres únicos (la suite ya lo hace) o reinicie el volumen. |
+| Una prueba falla con `intercepts pointer events` | El overlay global `.reload-all` quedó visible por una petición de fondo fallida. La suite lo neutraliza en `tests/helpers/auth.ts` (`neutralizarOverlayCarga`); verifique que ese helper esté aplicado y repita la medición. |
 | GitHub Actions no ejecuta el workflow | Verifique que el archivo esté en `.github/workflows/` y que Actions esté habilitado. |
 | El job de PR falla en TIA | Revise si el cambio afecta una prueba; si no, es la limitación esperada. El job debe fallar solo si falla `@critico`. |
 

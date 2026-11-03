@@ -24,7 +24,8 @@ test.describe('Modulo de productos', () => {
     await page.locator('#nuevaSerie').fill('E2E');
     await page.locator('#nuevaDescripcion').fill(descripcion);
     await page.locator('#nuevoStock').fill('10');
-    await page.locator('#nuevoPrecioUnitario').pressSequentially('118');
+    await page.locator('#nuevoPrecioUnitario').fill('118');
+    await page.locator('#nuevoPrecioUnitario').dispatchEvent('keyup');
     await expect(page.locator('#nuevoValorUnitario')).not.toHaveValue('', { timeout: 10_000 });
     await expect(page.locator('#nuevoPrecioCompra')).not.toHaveValue('', { timeout: 10_000 });
 
