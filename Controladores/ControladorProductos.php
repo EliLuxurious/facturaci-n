@@ -2,6 +2,19 @@
 namespace Controladores;
 use Modelos\ModeloProductos;
 class ControladorProductos{
+
+    // MP-001: valor por defecto del stock minimo cuando el producto no lo tiene configurado
+    const STOCK_MINIMO_POR_DEFECTO = 5;
+
+    public static function stockMinimo($valor){
+        return ($valor === '' || $valor === null || !is_numeric($valor)) ? self::STOCK_MINIMO_POR_DEFECTO : max(0, (int)$valor);
+    }
+
+    // MP-001: productos con stock igual o menor a su minimo
+    public static function ctrProductosStockBajo(){
+        return ModeloProductos::mdlProductosStockBajo();
+    }
+
     // MOSTRAR ProductoS|
     public static function ctrMostrarProductos($item, $valor) {
 
@@ -86,6 +99,8 @@ public static function ctrCrearProducto($productos, $file){
                         "unidad" => $productos['unidad'],
                         "descripcion" => $productos['nuevaDescripcion'],
                         "stock" => $productos['nuevoStock'],
+                        // MP-001: si no se indica un minimo, se usa 5 por defecto
+                        "stock_minimo" => self::stockMinimo($productos['nuevoStockMinimo'] ?? ''),
                         "tipo_precio" => '01',
                         "valor_unitario" => $productos['nuevoValorUnitario'],
                         "precio_unitario" => $productos['nuevoPrecioUnitario'],
@@ -173,6 +188,7 @@ public  function ctrEditarProducto(){
                         "unidad" => $_POST['editarUnidadMedida'],
                         "descripcion" => $_POST['editarDescripcion'],
                         "stock" => $_POST['editarStock'],
+                        "stock_minimo" => self::stockMinimo($_POST['editarStockMinimo'] ?? ''),
                         "valor_unitario" => $_POST['editarValorUnitario'],
                         "precio_unitario" => $_POST['editarPrecioUnitario'],
                         "precio_compra" => $_POST['editarPrecioCompra'],

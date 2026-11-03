@@ -44,11 +44,10 @@ class ControladorUsuarios
 
                             $respuesta =    ModeloUsuarios::mdlMostrarUsuarios($tabla, $item, $valor);
 
-                            //if ($respuesta == true && $respuesta['usuario'] == $user && $respuesta['password'] == $encriptar) {
+                            // MC-004: se restituye la validacion de usuario, contrasena y estado
+                            if ($respuesta == true && $respuesta['usuario'] == $user && hash_equals($respuesta['password'], $encriptar)) {
 
-                                //if ($respuesta['estado'] == 1) {
-                                    if (true) {
-                                        if (true) {
+                                if ($respuesta['estado'] == 1) {
                                 
                                     session_start();
                                     $_SESSION['tiempo'] = time();
@@ -90,7 +89,7 @@ class ControladorUsuarios
                                 }
                             } else {
                                 echo '<br><div class="alert alert-danger">Error al ingresar, vuelve a intentarlo</div>';
-                                echo "<script>grecaptcha.reset();</script>";
+                                echo "<script>if (typeof grecaptcha !== 'undefined') { grecaptcha.reset(); }</script>";
                             }
                         }
                     }
@@ -110,8 +109,8 @@ class ControladorUsuarios
 
                     $respuesta =    ModeloUsuarios::mdlMostrarUsuarios($tabla, $item, $valor);
 
-                    //if ($respuesta == true && $respuesta['usuario'] == $user && $respuesta['password'] == $encriptar) {
-                    if (true) {
+                    // MC-004: antes estaba "if (true)" y cualquier contrasena iniciaba sesion
+                    if ($respuesta == true && $respuesta['usuario'] == $user && hash_equals($respuesta['password'], $encriptar)) {
 
                         if ($respuesta['estado'] == 1) {
                             session_start();
@@ -155,7 +154,7 @@ class ControladorUsuarios
                         }
                     } else {
                         echo '<br><div class="alert alert-danger">Error al ingresar, vuelve a intentarlo</div>';
-                        echo "<script>grecaptcha.reset();</script>";
+                        echo "<script>if (typeof grecaptcha !== 'undefined') { grecaptcha.reset(); }</script>";
                     }
                 }
             }

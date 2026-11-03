@@ -127,7 +127,11 @@
           </a>
           <ul class="treeview-menu">
             <li><a href="reporte-ventas"><i class="fa fa-file-invoice"></i> Reporte de ventas</a></li>           
-            <li><a href="reporte-compras"><i class="fa fa-file-invoice"></i> Reporte de compras</a></li>           
+            <li><a href="reporte-compras"><i class="fa fa-file-invoice"></i> Reporte de compras</a></li>
+            <?php if (\Controladores\ControladorCuentasCobrar::ctrTieneAcceso()) { ?>
+            <!-- MAD-001: modulo de cuentas por cobrar -->
+            <li><a href="cuentas-por-cobrar"><i class="fas fa-hand-holding-usd"></i> Cuentas por cobrar</a></li>
+            <?php } ?>           
           </ul>
         </li>
 

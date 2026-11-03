@@ -1,0 +1,5 @@
+fecha;etiqueta;repeticiones;ttfb_mediana_ms;domcontentloaded_mediana_ms
+2026-11-03T06:11:46.122Z;MP-001-con-alerta;20;4;66
+2026-11-03T06:11:49.291Z;MP-001-sin-alerta;20;4.5;68
+2026-11-03T06:11:52.814Z;MP-001-con-alerta;20;5;74.5
+2026-11-03T06:11:56.154Z;MP-001-sin-alerta;20;5;69.5

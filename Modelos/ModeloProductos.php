@@ -67,7 +67,7 @@ class ModeloProductos{
 // REGISTRO DE PRODUCTOS
 public static function mdlCrearProducto($tabla, $datos){
 
-    $stmt = Conexion::conectar()->prepare("INSERT INTO $tabla(id_categoria, codigo, serie, descripcion, imagen, stock, tipo_precio, valor_unitario,  precio_unitario, precio_compra, igv, codigoafectacion, codunidad) VALUES (:id_categoria, :codigo, :serie, :descripcion, :imagen, :stock, :tipo_precio, :valor_unitario,  :precio_unitario, :precio_compra, :igv,  :codigoafectacion, :codunidad)");
+    $stmt = Conexion::conectar()->prepare("INSERT INTO $tabla(id_categoria, codigo, serie, descripcion, imagen, stock, stock_minimo, tipo_precio, valor_unitario,  precio_unitario, precio_compra, igv, codigoafectacion, codunidad) VALUES (:id_categoria, :codigo, :serie, :descripcion, :imagen, :stock, :stock_minimo, :tipo_precio, :valor_unitario,  :precio_unitario, :precio_compra, :igv,  :codigoafectacion, :codunidad)");
 
     $stmt->bindParam(":id_categoria", $datos['id_categoria'], PDO::PARAM_INT);
     $stmt->bindParam(":codigo", $datos['codigo'], PDO::PARAM_STR);
@@ -75,6 +75,7 @@ public static function mdlCrearProducto($tabla, $datos){
     $stmt->bindParam(":descripcion", $datos['descripcion'], PDO::PARAM_STR);
     $stmt->bindParam(":imagen", $datos['imagen'], PDO::PARAM_STR);
     $stmt->bindParam(":stock", $datos['stock'], PDO::PARAM_STR);
+    $stmt->bindParam(":stock_minimo", $datos['stock_minimo'], PDO::PARAM_INT);
     $stmt->bindParam(":tipo_precio", $datos['tipo_precio'], PDO::PARAM_STR);
     $stmt->bindParam(":valor_unitario", $datos['valor_unitario'], PDO::PARAM_STR);
     $stmt->bindParam(":precio_unitario", $datos['precio_unitario'], PDO::PARAM_STR);
@@ -93,10 +94,16 @@ public static function mdlCrearProducto($tabla, $datos){
     $stmt = null;
 
 }
+// MP-001: PRODUCTOS CON STOCK EN NIVEL CRITICO (stock <= stock minimo). No incluye servicios (ZZ).
+public static function mdlProductosStockBajo(){
+    $stmt = Conexion::conectar()->prepare("SELECT id, codigo, descripcion, stock, stock_minimo FROM productos WHERE codunidad <> 'ZZ' AND stock <= stock_minimo ORDER BY stock ASC, descripcion ASC");
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
 // EDITAR PRODUCTO
 public static function mdlEditarProducto($tabla, $datos){
 
-    $stmt = Conexion::conectar()->prepare("UPDATE $tabla set id = :id, id_categoria = :id_categoria, serie = :serie, descripcion = :descripcion, imagen = :imagen, stock = :stock, precio_compra = :precio_compra,  precio_unitario =  :precio_unitario, valor_unitario = :valor_unitario, igv = :igv, codigoafectacion = :codigoafectacion, codunidad = :codunidad WHERE id = :id");
+    $stmt = Conexion::conectar()->prepare("UPDATE $tabla set id = :id, id_categoria = :id_categoria, serie = :serie, descripcion = :descripcion, imagen = :imagen, stock = :stock, stock_minimo = :stock_minimo, precio_compra = :precio_compra,  precio_unitario =  :precio_unitario, valor_unitario = :valor_unitario, igv = :igv, codigoafectacion = :codigoafectacion, codunidad = :codunidad WHERE id = :id");
 
     $stmt->bindParam(":id", $datos['id'], PDO::PARAM_INT);
     $stmt->bindParam(":id_categoria", $datos['id_categoria'], PDO::PARAM_INT);
@@ -105,6 +112,7 @@ public static function mdlEditarProducto($tabla, $datos){
     $stmt->bindParam(":descripcion", $datos['descripcion'], PDO::PARAM_STR);
     $stmt->bindParam(":imagen", $datos['imagen'], PDO::PARAM_STR);
     $stmt->bindParam(":stock", $datos['stock'], PDO::PARAM_STR);
+    $stmt->bindParam(":stock_minimo", $datos['stock_minimo'], PDO::PARAM_INT);
     $stmt->bindParam(":precio_compra", $datos['precio_compra'], PDO::PARAM_STR);
     $stmt->bindParam(":precio_unitario", $datos['precio_unitario'], PDO::PARAM_STR);
     $stmt->bindParam(":valor_unitario", $datos['valor_unitario'], PDO::PARAM_STR);

@@ -20,6 +20,41 @@
     </section>
 </section>
 
+<?php
+/* =============================================
+   MP-001 (perfectivo): ALERTA DE STOCK MINIMO
+   Solo visible para el perfil Administrador (RNF02)
+============================================= */
+if (isset($_SESSION['perfil']) && $_SESSION['perfil'] == 'Administrador') {
+  $productosStockBajo = \Controladores\ControladorProductos::ctrProductosStockBajo();
+  if (!empty($productosStockBajo)) {
+?>
+<section class="container-fluid">
+  <div class="alert alert-warning" id="alertaStockBajo" style="margin:10px 0 0 0;">
+    <h4><i class="fas fa-exclamation-triangle"></i> Productos con stock bajo: <?php echo count($productosStockBajo); ?></h4>
+    <p>Estos productos tienen un stock igual o menor a su mínimo. Haga el pedido de reposición.</p>
+    <div class="table-responsive" style="max-height:220px; overflow-y:auto;">
+      <table class="table table-condensed" style="background:transparent; margin:0;">
+        <thead><tr><th>Producto</th><th>Stock actual</th><th>Stock mínimo</th></tr></thead>
+        <tbody>
+        <?php foreach ($productosStockBajo as $producto) { ?>
+          <tr>
+            <td><?php echo htmlspecialchars($producto['descripcion']); ?></td>
+            <td><?php echo (int)$producto['stock']; ?></td>
+            <td><?php echo (int)$producto['stock_minimo']; ?></td>
+          </tr>
+        <?php } ?>
+        </tbody>
+      </table>
+    </div>
+    <a href="productos" class="btn btn-sm btn-default" style="margin-top:8px;">Ir a productos</a>
+  </div>
+</section>
+<?php
+  }
+}
+?>
+
 
 
 <!-- <section class="content"> -->

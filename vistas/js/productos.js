@@ -220,6 +220,7 @@ $(document).on("click",".btnEditarProducto", function(){
             $("#editarSerie").val(respuesta["serie"]);
             $("#editarDescripcion").val(respuesta["descripcion"]);
             $("#editarStock").val(respuesta["stock"]);
+            $("#editarStockMinimo").val(respuesta["stock_minimo"]); // MP-001
             $("#editarPrecioCompra").val(respuesta["precio_compra"]);
             $("#editarPrecioUnitario").val(respuesta["precio_unitario"]);
             $("#editarValorUnitario").val(respuesta["valor_unitario"]);

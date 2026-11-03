@@ -43,8 +43,11 @@ class ModeloClientes
         $stmt->bindParam(":email", $datos['email'], PDO::PARAM_STR);
         $stmt->bindParam(":telefono", $datos['telefono'], PDO::PARAM_STR);
         $stmt->bindParam(":direccion", $datos['direccion'], PDO::PARAM_STR);
-        $stmt->bindParam(":ubigeo", $datos['ubigeo'], PDO::PARAM_STR);
-        $stmt->bindParam(":fecha_nacimiento", $datos['fecha_nacimiento'], PDO::PARAM_STR);
+        // MA-002: en MariaDB 10.6 (modo estricto) una fecha vacia '' provoca error; se guarda NULL
+        $ubigeo = $datos['ubigeo'] ?? '';
+        $fechaNacimiento = !empty($datos['fecha_nacimiento']) ? $datos['fecha_nacimiento'] : null;
+        $stmt->bindParam(":ubigeo", $ubigeo, PDO::PARAM_STR);
+        $stmt->bindValue(":fecha_nacimiento", $fechaNacimiento, $fechaNacimiento === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
 
         if ($stmt->execute()) {
 
@@ -71,7 +74,9 @@ class ModeloClientes
         $stmt->bindParam(":email", $datos['email'], PDO::PARAM_STR);
         $stmt->bindParam(":telefono", $datos['telefono'], PDO::PARAM_STR);
         $stmt->bindParam(":direccion", $datos['direccion'], PDO::PARAM_STR);
-        $stmt->bindParam(":fecha_nacimiento", $datos['fecha_nacimiento'], PDO::PARAM_STR);
+        // MA-002: fecha vacia -> NULL (MariaDB en modo estricto)
+        $fechaNacimiento = !empty($datos['fecha_nacimiento']) ? $datos['fecha_nacimiento'] : null;
+        $stmt->bindValue(":fecha_nacimiento", $fechaNacimiento, $fechaNacimiento === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
 
         if ($stmt->execute()) {
 

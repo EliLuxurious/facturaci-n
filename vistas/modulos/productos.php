@@ -191,6 +191,13 @@
                               <input type="number" class="form-control" min="0" name="nuevoStock" id="nuevoStock" placeholder="Ingresar stock" required>
                            </div>
                         </div>
+                        <!-- MP-001: STOCK MINIMO PARA LA ALERTA DE REPOSICION -->
+                        <div class="col-md-3">
+                           <div class="form-group">
+                              <span>Stock mínimo</span>
+                              <input type="number" class="form-control" min="0" name="nuevoStockMinimo" id="nuevoStockMinimo" placeholder="5 por defecto">
+                           </div>
+                        </div>
                      </div>
                      <!-- ENTRADA PARA PRECIO VENTA-->
                      <div class="row">
@@ -347,6 +354,13 @@
                            <div class="form-group">
                               <span>Stock</span> 
                               <input type="number" class="form-control " min="0" name="editarStock" id="editarStock"  required>
+                           </div>
+                        </div>
+                        <!-- MP-001: STOCK MINIMO -->
+                        <div class="col-md-3">
+                           <div class="form-group">
+                              <span>Stock mínimo</span>
+                              <input type="number" class="form-control " min="0" name="editarStockMinimo" id="editarStockMinimo" placeholder="5 por defecto">
                            </div>
                         </div>
                      </div>

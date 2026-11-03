@@ -1,0 +1,18 @@
+# Habilita el proveedor "legacy" de OpenSSL 3.
+# El certificado de prueba (.pfx) usa cifrado antiguo (RC2/3DES) que OpenSSL 3
+# ya no carga por defecto; sin esto PHP no puede firmar los XML de SUNAT
+# (error: "digital envelope routines::unsupported").
+openssl_conf = openssl_init
+
+[openssl_init]
+providers = provider_sect
+
+[provider_sect]
+default = default_sect
+legacy = legacy_sect
+
+[default_sect]
+activate = 1
+
+[legacy_sect]
+activate = 1
